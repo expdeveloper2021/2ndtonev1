@@ -1,0 +1,45 @@
+.inner-container-users-list {
+    width: 100%;
+    max-width: 1500px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 50px 0px;
+}
+
+.container-users-list {
+    width: 100%;
+    display: flex;
+}
+
+.container-users-list div {
+    width: 25%;
+    padding: 10px;
+}
+
+.container-users-list div p {
+    letter-spacing: 1px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.container-users-list:first-child div p {
+    font-weight: 600;
+}
+
+.delete-icon-main {
+    margin: 0px auto;
+    width: 35px !important;
+    height: 35px !important;
+    background-color: #26eaeb;
+    border-radius: 50%;
+    padding: 0px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #26eaeb;
+    cursor: pointer;
+}
+
+.delete-icon-main svg {
+    font-size: 20px;
+}

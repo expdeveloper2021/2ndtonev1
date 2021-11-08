@@ -1,0 +1,34 @@
+.insurance-container-stuff {
+    padding: 40px 10px;
+    margin-top: 150px;
+    background-color: black;
+    text-align: center;
+    padding-top: 120px;
+}
+
+.main-insurancecs {
+    color: #26aeeb;
+    font-size: 16px;
+    line-height: 16px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+}
+
+.heading-insurancecs {
+    margin-top: 2%;
+    margin-bottom: 24px;
+    font-size: 48px;
+    line-height: 1.1;
+    font-weight: 600;
+    color: #fff;
+}
+
+.desc-insurancecs {
+    max-width: 100%;
+    padding: 0 25px;
+    margin-bottom: 35px;
+    font-size: 18px;
+    line-height: 24px;
+    color: gray;
+}
