@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import imgthird from '../../assets/whitelogo.jpg'
 import bannervideo from '../../assets/bannervideo.mp4'
 import footervideo from '../../assets/footervideo.mp4'
 import midvideo from '../../assets/midvideo.mp4'
@@ -10,7 +9,10 @@ import patience from '../../assets/patience.svg'
 import logofile from '../../assets/logofile.png'
 import { BiChevronRight } from 'react-icons/bi'
 import { GiHamburgerMenu } from 'react-icons/gi'
+import { BiEditAlt } from 'react-icons/bi'
+import { MdDeleteForever } from 'react-icons/md'
 import CloseIcon from '@mui/icons-material/Close';
+import firebase from "../../Config/Firebase";
 import './index.css'
 import Footer from '../../Components/Footer'
 
@@ -25,9 +27,185 @@ export class Home extends Component {
             missionActive: false,
             hiwActive: false,
             popupOpen: false,
+            firstSections: [],
+            testimonialSection: "",
+            midSections: [],
+            bottomSections: [],
+            createImageArray: [],
+            dropFile: [],
+            heading1: "",
+            heading2: "",
+            buttonLink: "",
+            buttonText: "",
+            description: "",
+            selectedSectionToCreate: "top",
+            createPopup: false,
+            selectedIndexToEdit: 0,
+            editImageArray: [],
+            dropFileEdit: [],
+            editPopup: false,
+            selectedSectionToEdit: "top",
+            isAdmin: false,
         }
     }
 
+    componentDidMount() {
+
+        let isAdmin = localStorage.getItem("isAdmin")
+        if (isAdmin) {
+            this.setState({ isAdmin })
+        }
+
+        // let arrFirst = [
+        //     {
+        //         heading1: "WHO ARE WE?",
+        //         heading2: "2nd to None PT",
+        //         description: "Dr. Rick Chavez is a SoCal native and a U.S. Army Veteran. He has played all different types of sports throughout his life and has been performing strength and conditioning for the last 10 years of his life. As a Physical Therapist, Dr. Rick understands how to manage symptoms and prescribe therapeutic exercises to alleviate pain. As a Certified Strength and Conditioning Specialist (CSCS), Dr. Rick can help propel your physical and mental toughness to the next level!",
+        //         buttonLink: "",
+        //         buttonText: "",
+        //         image: "https://firebasestorage.googleapis.com/v0/b/crystal-signup.appspot.com/o/shakehands.jpg?alt=media&token=5ad7c981-b045-4490-841d-634b232b48d2",
+        //     },
+        //     {
+        //         heading1: "2ND TO NONE PT | SAN MARCOS, CA",
+        //         heading2: "Why Us?",
+        //         description: "As an avid thrill-seeker, Dr. Rick knows what it takes to perform at a high-level when playing a multitude of sports such as: soccer, mountain biking, Olympic weightlifting, snowboarding, CrossFit, skateboarding, sprinting, football, etc. Plus, Dr. Rick will be the only healthcare professional managing your plan of care and he will be with you throughout every minute of your treatment",
+        //         buttonLink: "",
+        //         buttonText: "",
+        //         image: "https://firebasestorage.googleapis.com/v0/b/crystal-signup.appspot.com/o/userpiclength.jpg?alt=media&token=5694b0d5-c449-4986-a96b-abcc7be64df6",
+        //     }
+        // ]
+
+        firebase.database().ref("first_section_inners").on("value", (data) => {
+            let a = data.val()
+            if (a) {
+                this.setState({ firstSections: a })
+            } else {
+                this.setState({ firstSections: [] })
+            }
+        })
+
+        firebase.database().ref("mid_section_inners").on("value", (data) => {
+            let a = data.val()
+            if (a) {
+                this.setState({ midSections: a })
+            } else {
+                this.setState({ midSections: [] })
+            }
+        })
+
+        firebase.database().ref("bottom_section_inners").on("value", (data) => {
+            let a = data.val()
+            if (a) {
+                this.setState({ bottomSections: a })
+            } else {
+                this.setState({ bottomSections: [] })
+            }
+        })
+
+        firebase.database().ref("testimonials").on("value", (data) => {
+            let a = data.val()
+            this.setState({ testimonialSection: a })
+        })
+    }
+
+    createSection() {
+        const { heading1, heading2, createImageArray, description, buttonLink, buttonText, selectedSectionToCreate, dropFile } = this.state
+        if (createImageArray.length > 0) {
+            dropFile.map((e) => {
+                firebase.storage().ref().child(`uploadedImages/${e.name}`).put(e)
+                    .then((snapshot) => {
+                        snapshot.ref.getDownloadURL().then((snapUrl) => {
+                            let obj = {
+                                heading1,
+                                heading2,
+                                description,
+                                buttonLink,
+                                buttonText,
+                                image: snapUrl
+                            }
+                            if (selectedSectionToCreate === "top") {
+                                this.state.firstSections.push(obj)
+                                firebase.database().ref("first_section_inners").set(this.state.firstSections).then(() => {
+                                    this.setState({ createPopup: false, selectedSectionToCreate: "" })
+                                })
+                            } else if (selectedSectionToCreate === "mid") {
+                                this.state.midSections.push(obj)
+                                firebase.database().ref("mid_section_inners").set(this.state.midSections).then(() => {
+                                    this.setState({ createPopup: false, selectedSectionToCreate: "" })
+                                })
+                            } else if (selectedSectionToCreate === "bottom") {
+                                this.state.bottomSections.push(obj)
+                                firebase.database().ref("bottom_section_inners").set(this.state.bottomSections).then(() => {
+                                    this.setState({ createPopup: false, selectedSectionToCreate: "" })
+                                })
+                            }
+                        })
+                    })
+            })
+        }
+    }
+
+    editSection() {
+        const { heading1, heading2, editImageArray, description, buttonLink, buttonText, selectedSectionToEdit, dropFileEdit } = this.state
+        if (dropFileEdit.length > 0) {
+            dropFileEdit.map((e) => {
+                firebase.storage().ref().child(`uploadedImages/${e.name}`).put(e)
+                    .then((snapshot) => {
+                        snapshot.ref.getDownloadURL().then((snapUrl) => {
+                            let obj = {
+                                heading1,
+                                heading2,
+                                description,
+                                buttonLink,
+                                buttonText,
+                                image: snapUrl
+                            }
+                            if (selectedSectionToEdit === "top") {
+                                this.state.firstSections.splice(this.state.selectedIndexToEdit, 1, obj)
+                                firebase.database().ref("first_section_inners").set(this.state.firstSections).then(() => {
+                                    this.setState({ editPopup: false, selectedSectionToEdit: "" })
+                                })
+                            } else if (selectedSectionToEdit === "mid") {
+                                this.state.midSections.splice(this.state.selectedIndexToEdit, 1, obj)
+                                firebase.database().ref("mid_section_inners").set(this.state.midSections).then(() => {
+                                    this.setState({ editPopup: false, selectedSectionToEdit: "" })
+                                })
+                            } else if (selectedSectionToEdit === "bottom") {
+                                this.state.bottomSections.splice(this.state.selectedIndexToEdit, 1, obj)
+                                firebase.database().ref("bottom_section_inners").set(this.state.bottomSections).then(() => {
+                                    this.setState({ editPopup: false, selectedSectionToEdit: "" })
+                                })
+                            }
+                        })
+                    })
+            })
+        } else {
+            let obj = {
+                heading1,
+                heading2,
+                description,
+                buttonLink,
+                buttonText,
+                image: editImageArray[0]
+            }
+            if (selectedSectionToEdit === "top") {
+                this.state.firstSections.splice(this.state.selectedIndexToEdit, 1, obj)
+                firebase.database().ref("first_section_inners").set(this.state.firstSections).then(() => {
+                    this.setState({ editPopup: false, selectedSectionToEdit: "" })
+                })
+            } else if (selectedSectionToEdit === "mid") {
+                this.state.midSections.splice(this.state.selectedIndexToEdit, 1, obj)
+                firebase.database().ref("mid_section_inners").set(this.state.midSections).then(() => {
+                    this.setState({ editPopup: false, selectedSectionToEdit: "" })
+                })
+            } else if (selectedSectionToEdit === "bottom") {
+                this.state.bottomSections.splice(this.state.selectedIndexToEdit, 1, obj)
+                firebase.database().ref("bottom_section_inners").set(this.state.bottomSections).then(() => {
+                    this.setState({ editPopup: false, selectedSectionToEdit: "" })
+                })
+            }
+        }
+    }
 
     render() {
         return (
@@ -90,56 +268,110 @@ export class Home extends Component {
                     <div className="content-bsh">
                         <h3>2nd to None PT | San Marcos, CA</h3>
                         <h4>Physical Therapy and Wellness</h4>
-                        <p>Tired of fearing pain? Tired of not being able to do the things you love? Tired of missing out on life? 2nd to None Physical Therapy provides top of the line hysical therapy, Sports Rehabilitation and Strength & Conditioning.</p>
+                        <p>Tired of fearing pain? Tired of not being able to do the things you love? Tired of missing out on life? 2nd to None Physical Therapy provides top of the line physical therapy, Sports Rehabilitation and Strength & Conditioning.</p>
                         <div className="buttoncontainer-bsh">
                             <button>Get Started <BiChevronRight /></button>
                         </div>
                     </div>
                 </div>
                 <div className="container-aboutsections" id="about" style={{ paddingBottom: 0 }}>
-                    <div className="content-cas">
-                        <div className="left-ccas">
-                            <p className="first-heading-ccas">WHO ARE WE?</p>
-                            <p className="second-heading-ccas">2nd To None PT</p>
-                            <p className="desc-heading-ccas">Dr. Rick Chavez is a SoCal native and a U.S. Army Veteran. He has played all different types of sports throughout his life and has been performing strength and conditioning for the last 10 years of his life. As a Physical Therapist, Dr. Rick understands how to manage symptoms and prescribe therapeutic exercises to alleviate pain. As a Certified Strength and Conditioning Specialist (CSCS), Dr. Rick can help propel your physical and mental toughness to the next level!</p>
+                    {this.state.isAdmin && window.innerWidth > 768 && <h3 className="add-section-heading" onClick={() => this.setState({ createPopup: true, selectedSectionToCreate: "top" })}><font>Add New Section</font></h3>}
+                    {this.state.firstSections.length > 0 && this.state.firstSections.map((y, i) => {
+                        return <div className="content-cas">
+                            {window.innerWidth > 768 && this.state.isAdmin && <div className="icons-top-ccas">
+                                <div className="inner-icon-tccas" onClick={() => {
+                                    this.setState({
+                                        editPopup: true, selectedIndexToEdit: i, selectedSectionToEdit: "top",
+                                        heading1: y.heading1,
+                                        heading2: y.heading2,
+                                        description: y.description,
+                                        buttonLink: y.buttonLink,
+                                        buttonText: y.buttonText,
+                                        editImageArray: [y.image],
+                                    })
+                                }}>
+                                    <BiEditAlt />
+                                </div>
+                                <div className="inner-icon-tccas">
+                                    <MdDeleteForever onClick={() => {
+                                        this.state.firstSections.splice(i, 1)
+                                        firebase.database().ref("first_section_inners").set(this.state.firstSections)
+                                    }} />
+                                </div>
+                            </div>}
+                            <div className="left-ccas">
+                                <p className="first-heading-ccas">{y.heading1}</p>
+                                <p className="second-heading-ccas">{y.heading2}</p>
+                                <p className="desc-heading-ccas">{y.description}</p>
+                                {y.buttonText && <button onClick={() => {
+                                    if (y.buttonLink) {
+                                        window.open(
+                                            y.buttonLink,
+                                            '_blank' // <- This is what makes it open in a new window.
+                                        )
+                                    }
+                                }}>{y.buttonText}</button>}
+                            </div>
+                            <div className="right-ccas firstrccas">
+                                <img src={y.image} alt="imgright" />
+                            </div>
                         </div>
-                        <div className="right-ccas firstrccas">
-                            {/* <img src="https://firebasestorage.googleapis.com/v0/b/crystal-signup.appspot.com/o/1.jpg?alt=media&token=d1973cbb-df7d-4141-942b-0aaf4c272c22" alt="imgright" /> */}
-                        </div>
-                    </div>
-                    <div className="content-cas">
-                        <div className="left-ccas">
-                            <p className="first-heading-ccas">2ND TO NONE PT | SAN MARCOS, CA</p>
-                            <p className="second-heading-ccas">Why Us?</p>
-                            <p className="desc-heading-ccas">As an avid thrill-seeker, Dr. Rick knows what it takes to perform at a high-level when playing a multitude of sports such as: soccer, mountain biking, Olympic weightlifting, snowboarding, CrossFit, skateboarding, sprinting, football, etc. Plus, Dr. Rick will be the only healthcare professional managing your plan of care and he will be with you throughout every minute of your treatment</p>
-                        </div>
-                        <div className="right-ccas secondrccas">
-                            {/* <img src="https://firebasestorage.googleapis.com/v0/b/crystal-signup.appspot.com/o/6.jpg?alt=media&token=ce64b86c-d6f7-4655-89a9-f363999f1f01" alt="imgright" /> */}
-                        </div>
-                    </div>
+                    })}
                 </div>
                 <div className="black-section-fullwidth" style={{ marginBottom: 0 }}>
                     <div className="container-aboutsections">
                         <div className="content-cas" id="testimonials">
                             <div className="left-ccas">
-                                <p className="first-heading-ccas">TESTIMONIALS</p>
-                                <p className="second-heading-ccas">Brenda S. of Los Angeles, CA | Yelp Review</p>
-                                <p className="desc-heading-ccas">Dr. Rick Chavez is AMAZING! Had major back pain with having a baby last year and after just one visit felt a whole lot better! Will definitely be visiting more often. He's very knowledgeable and made everything super comfortable! Thanks again!</p>
+                                <p className="first-heading-ccas">{this.state.testimonialSection.heading1}</p>
+                                <p className="second-heading-ccas">{this.state.testimonialSection.heading2}</p>
+                                <p className="desc-heading-ccas">{this.state.testimonialSection.description}</p>
                             </div>
                             <div className="right-ccas">
-                                <img src={imgthird} alt="imgright" />
+                                <img src={this.state.testimonialSection.image} alt="imgright" />
                             </div>
                         </div>
-                        <div className="content-cas">
-                            <div className="left-ccas">
-                                <p className="first-heading-ccas">YELP REVIEW</p>
-                                <p className="second-heading-ccas">Cade L. of San Diego, CA | Yelp Review</p>
-                                <p className="desc-heading-ccas">Excellent PT with a focus on results, and patient safety. If I could give more than 5-stars, I absolutely would! Anyone dealing with chronic pain, or lingering injuries, would be well off to give Dr Rick a call!</p>
+                        {this.state.isAdmin && window.innerWidth > 768 && <h3 className="add-section-heading" style={{ color: "white", marginBottom: 0, marginTop: 60 }} onClick={() => this.setState({ createPopup: true, selectedSectionToCreate: "mid" })}><font>Add New Section</font></h3>}
+                        {this.state.midSections.length > 0 && this.state.midSections.map((y, i) => {
+                            return <div className="content-cas">
+                                {window.innerWidth > 768 && this.state.isAdmin && <div className="icons-top-ccas">
+                                    <div className="inner-icon-tccas" onClick={() => {
+                                        this.setState({
+                                            editPopup: true, selectedIndexToEdit: i, selectedSectionToEdit: "mid",
+                                            heading1: y.heading1,
+                                            heading2: y.heading2,
+                                            description: y.description,
+                                            buttonLink: y.buttonLink,
+                                            buttonText: y.buttonText,
+                                            editImageArray: [y.image],
+                                        })
+                                    }}>
+                                        <BiEditAlt />
+                                    </div>
+                                    <div className="inner-icon-tccas">
+                                        <MdDeleteForever onClick={() => {
+                                            this.state.midSections.splice(i, 1)
+                                            firebase.database().ref("mid_section_inners").set(this.state.midSections)
+                                        }} />
+                                    </div>
+                                </div>}
+                                <div className="left-ccas">
+                                    <p className="first-heading-ccas">{y.heading1}</p>
+                                    <p className="second-heading-ccas">{y.heading2}</p>
+                                    <p className="desc-heading-ccas">{y.description}</p>
+                                    {y.buttonText && <button onClick={() => {
+                                        if (y.buttonLink) {
+                                            window.open(
+                                                y.buttonLink,
+                                                '_blank' // <- This is what makes it open in a new window.
+                                            )
+                                        }
+                                    }}>{y.buttonText}</button>}
+                                </div>
+                                <div className="right-ccas thirdrccas">
+                                    <img src={y.image} alt="imgright" />
+                                </div>
                             </div>
-                            <div className="right-ccas thirdrccas">
-                                {/* <img src="https://firebasestorage.googleapis.com/v0/b/crystal-signup.appspot.com/o/7.jpg?alt=media&token=c6a9f480-21f0-44c0-8229-db4eb36724f5" alt="imgright" /> */}
-                            </div>
-                        </div>
+                        })}
                         <div className="content-cas" style={{ flexDirection: "row-reverse" }} id="mission">
                             <div className="left-ccas" style={{ maxWidth: 660, paddingLeft: 30 }}>
                                 <p className="first-heading-ccas">OUR MISSION, VISION, & VALUES</p>
@@ -155,7 +387,7 @@ export class Home extends Component {
                             </div>
                             <div className="right-ccas" style={{ maxWidth: 660 }}>
                                 <img src={imgfifth} alt="imgright" style={{ marginBottom: 30 }} />
-                                <img src="https://firebasestorage.googleapis.com/v0/b/crystal-signup.appspot.com/o/8.jpg?alt=media&token=d78d7027-40ec-47a5-9b78-3d1c45408584" alt="imgright" />
+                                <img src="https://firebasestorage.googleapis.com/v0/b/crystal-signup.appspot.com/o/8.jpg?alt=media&token=8a15bdc5-b470-4323-94f9-9ae9de36da73" alt="imgright" />
                             </div>
                         </div>
                     </div>
@@ -218,32 +450,56 @@ export class Home extends Component {
                     <video src={midvideo} autoPlay loop muted playsInline></video>
                 </div>
                 <div className="container-aboutsections" style={{ paddingTop: 0 }}>
-                    <div className="content-cas" style={{ paddingTop: 0 }}>
+                    {this.state.isAdmin && window.innerWidth > 768 && <h3 className="add-section-heading" onClick={() => this.setState({ createPopup: true, selectedSectionToCreate: "bottom" })}><font>Add New Section</font></h3>}
+                    {this.state.bottomSections.length > 0 && this.state.bottomSections.map((y, i) => {
+                        return <div className="content-cas">
+                            {window.innerWidth > 768 && this.state.isAdmin && <div className="icons-top-ccas">
+                                <div className="inner-icon-tccas" onClick={() => {
+                                    this.setState({
+                                        editPopup: true, selectedIndexToEdit: i, selectedSectionToEdit: "bottom",
+                                        heading1: y.heading1,
+                                        heading2: y.heading2,
+                                        description: y.description,
+                                        buttonLink: y.buttonLink,
+                                        buttonText: y.buttonText,
+                                        editImageArray: [y.image],
+                                    })
+                                }}>
+                                    <BiEditAlt />
+                                </div>
+                                <div className="inner-icon-tccas">
+                                    <MdDeleteForever onClick={() => {
+                                        this.state.bottomSections.splice(i, 1)
+                                        firebase.database().ref("bottom_section_inners").set(this.state.bottomSections)
+                                    }} />
+                                </div>
+                            </div>}
+                            <div className="left-ccas">
+                                <p className="first-heading-ccas">{y.heading1}</p>
+                                <p className="second-heading-ccas">{y.heading2}</p>
+                                <p className="desc-heading-ccas">{y.description}</p>
+                                {y.buttonText && <button onClick={() => {
+                                    if (y.buttonLink) {
+                                        window.open(
+                                            y.buttonLink,
+                                            '_blank' // <- This is what makes it open in a new window.
+                                        )
+                                    }
+                                }}>{y.buttonText}</button>}
+                            </div>
+                            <div className="right-ccas thirdrccas">
+                                <img src={y.image} alt="imgright" />
+                            </div>
+                        </div>
+                    })}
+                    {/* <div className="content-cas" style={{ paddingTop: 0 }}>
                         <div className="left-ccas">
                             <p className="first-heading-ccas">Upcoming Events</p>
                             <p className="second-heading-ccas">Sign Up for any Upcoming Events!</p>
                             <p className="desc-heading-ccas">Click the link in our footer below to sign up for our newsletter informing of any upcoming physical therapy events near you.</p>
                         </div>
                         <div className="right-ccas">
-                            <img src={imgthird} alt="imgright" />
-                        </div>
-                    </div>
-                    {/* <div className="content-cas">
-                        <div className="left-ccas">
-                            <p className="first-heading-ccas">SELF SCHEDULING</p>
-                            <p className="second-heading-ccas">Online Booking has never been so Quick & Easy</p>
-                            <p className="desc-heading-ccas">Are you ready to begin your pain free, active lifestyle? With self-scheduling, book an appointment anytime, anywhere. With 2nd To None Physical Therapy, know care fits around your schedule.</p>
-                        </div>
-                        <div className="right-ccas selfrccas">
-                        </div>
-                    </div>
-                    <div className="content-cas">
-                        <div className="left-ccas">
-                            <p className="first-heading-ccas">MORE ABOUT DR. RICK</p>
-                            <p className="second-heading-ccas">2nd To None Physical Therapy | San Diego, CA</p>
-                            <p className="desc-heading-ccas">Rick Chavez is a successful and highly regarded clinician, U.S. Army Veteran and a southern California native. He and his wife, Rebeca, work together to help people get out of pain, find out why they are in pain and to educate them on how to keep the pain away for good! Dr. Rick lives a life that is both humble and fulfilling. He worships God daily, enjoys working with his wife and awesome patients and has the time freedom to enjoy those great relationships in the great outdoors of southern California. Rick learned a lot about selfless service during his time in the U.S. Army. Rick recently attained his Certified Strength and Conditioning Specialist (CSCS) so that he may provide more in-depth knowledge during his treatments. He continues to give back his knowledge, time and skills so that others may have greater opportunities and live a more fulfilling life.</p>
-                        </div>
-                        <div className="right-ccas aboutrccas">
+                            <img src="https://firebasestorage.googleapis.com/v0/b/crystal-signup.appspot.com/o/whitelogo.jpg?alt=media&token=1435d7ee-a13b-46f1-85d1-cf0af3ecd1fe" alt="imgright" />
                         </div>
                     </div> */}
                 </div>
@@ -256,85 +512,135 @@ export class Home extends Component {
                         <p>Get back to doing what you love with 2nd To None PT.</p>
                     </div>
                 </div>
-                {/* <div className="footer-bottom-main">
-                    <div className="container-fbm">
-                        <h1 className="heading-cfbm">2nd to None PT | San Marcos, CA</h1>
-                        <div className="container-row-fbm">
-                            <div className="inner-container-row-fbm">
-                                <p className="title-icrf">Contact Us</p>
-                                <p className="content-icrf" onClick={() => {
-                                    window.open(
-                                        "https://www.yelp.com/map/2nd-to-none-physical-therapy-san-marcos-2",
-                                        "_blank"
-                                    )
-                                }}>Our Address: 737 Windy Point Dr Ste H & I San Marcos, CA 92069</p>
-                                <p className="content-icrf">Phone Number: (760)-759-3494</p>
-                                <p className="content-icrf">Email: rick.chavez@2ndtononept.com</p>
+                <Footer />
+                {this.state.createPopup && <div className="create-section-popup">
+                    <div className="inner-create-popupsec">
+                        <CloseIcon className="close-icon-icps" onClick={() => {
+                            this.setState({
+                                createPopup: false, selectedSectionToCreate: "",
+                                heading1: "",
+                                heading2: "",
+                                description: "",
+                                buttonLink: "",
+                                buttonText: "",
+                                createImageArray: [],
+                                dropFile: [],
+                            })
+                        }} />
+                        <div className="container-icpsec">
+                            <div className="fields-icpopup">
+                                <input type="text" placeholder="1st Heading" value={this.state.heading1} onChange={(e) => {
+                                    this.setState({ heading1: e.target.value })
+                                }} />
+                                <input type="text" placeholder="2nd Heading" value={this.state.heading2} onChange={(e) => {
+                                    this.setState({ heading2: e.target.value })
+                                }} />
+                                <textarea placeholder="Description Goes here" value={this.state.description} onChange={(e) => {
+                                    this.setState({ description: e.target.value })
+                                }}>
+
+                                </textarea>
+                                <input type="text" placeholder="Button Text" value={this.state.buttonText} onChange={(e) => {
+                                    this.setState({ buttonText: e.target.value })
+                                }} />
+                                <input type="text" placeholder="Button Link" value={this.state.buttonLink} onChange={(e) => {
+                                    this.setState({ buttonLink: e.target.value })
+                                }} />
+                                <input type="file" onChange={(e) => {
+                                    e.preventDefault()
+                                    let dropFiles = []
+                                    if (e.target.files && e.target.files.length > 0) {
+                                        let objected = Object.entries(e.target.files)
+                                        objected.map((f, i) => {
+                                            const reader = new FileReader();
+                                            dropFiles.push(objected[i][1])
+                                            reader.addEventListener('load', () => {
+                                                let img = new Image();
+                                                let result = reader.result
+                                                img.onload = (e) => {
+                                                    let arr = []
+                                                    arr.push(result)
+                                                    this.setState({ createImageArray: arr, dropFile: dropFiles })
+                                                };
+                                                img.src = result;
+                                            });
+                                            reader.readAsDataURL(objected[i][1]);
+                                            e.target.value = null
+                                        })
+                                    }
+                                }} />
+                                <button onClick={this.createSection.bind(this)}>SAVE</button>
                             </div>
-                            <div className="inner-container-row-fbm">
-                                <p className="title-icrf">For You</p>
-                                <p className="content-icrf">Resources</p>
-                                <p className="content-icrf" onClick={() => {
-                                    window.open(
-                                        "https://pteverywhere.com/",
-                                        "_blank"
-                                    )
-                                }}>PT Everywhere</p>
-                                <p className="content-icrf">Self-Schedule</p>
-                                <p className="content-icrf" onClick={() => {
-                                    window.open(
-                                        "https://pteverywhere.com/PtE/s/2ndtonone/register",
-                                        "_blank"
-                                    )
-                                }}>Register</p>
+                            <div className="image-icpopup">
+                                {this.state.createImageArray.length > 0 && <img src={this.state.createImageArray[0]} />}
                             </div>
-                            <div className="inner-container-row-fbm">
-                                <p className="title-icrf">Find Us</p>
-                                <p className="content-icrf" onClick={() => {
-                                    window.open(
-                                        "https://www.instagram.com/2ndtononept/",
-                                        "_blank"
-                                    )
-                                }}>Instagram</p>
-                                <p className="content-icrf" onClick={() => {
-                                    window.open(
-                                        "https://www.yelp.com/biz/2nd-to-none-physical-therapy-san-marcos-2",
-                                        "_blank"
-                                    )
-                                }}>Yelp</p>
-                                <p className="content-icrf" onClick={() => {
-                                    window.open(
-                                        "https://www.instagram.com/rick_b_chavez/",
-                                        "_blank"
-                                    )
-                                }}>Follow Dr. Rick on IG</p>
-                                <p className="content-icrf" onClick={() => {
-                                    window.open(
-                                        "https://www.yelp.com/map/2nd-to-none-physical-therapy-san-marcos-2",
-                                        "_blank"
-                                    )
-                                }}>Get Directions</p>
-                            </div>
-                            <div className="inner-container-row-fbm">
-                                <p className="title-icrf">More Links</p>
-                                <p className="content-icrf" onClick={() => {
-                                    window.open(
-                                        "https://www.linkedin.com/in/rick-b-chavez",
-                                        "_blank"
-                                    )
-                                }}>Linkedin</p>
-                                <p className="content-icrf" onClick={() => {
-                                    window.location.href = "/signup"
-                                }}>Sign up for the Email list</p>
-                            </div>
-                        </div>
-                        <div className="container-bottom-fbm">
-                            <button>Why We Don't Accept Insurance</button>
-                            <p>Interest-Based Copyright&copy; 2022, 2ndtonone.com, and its affiliates.</p>
                         </div>
                     </div>
-                </div> */}
-                <Footer />
+                </div>}
+                {this.state.editPopup && <div className="create-section-popup">
+                    <div className="inner-create-popupsec">
+                        <CloseIcon className="close-icon-icps" onClick={() => {
+                            this.setState({
+                                editPopup: false, selectedIndexToEdit: 0, selectedSectionToEdit: "",
+                                heading1: "",
+                                heading2: "",
+                                description: "",
+                                buttonLink: "",
+                                buttonText: "",
+                                editImageArray: [],
+                                dropFileEdit: [],
+                            })
+                        }} />
+                        <div className="container-icpsec">
+                            <div className="fields-icpopup">
+                                <input type="text" placeholder="1st Heading" value={this.state.heading1} onChange={(e) => {
+                                    this.setState({ heading1: e.target.value })
+                                }} />
+                                <input type="text" placeholder="2nd Heading" value={this.state.heading2} onChange={(e) => {
+                                    this.setState({ heading2: e.target.value })
+                                }} />
+                                <textarea placeholder="Description Goes here" value={this.state.description} onChange={(e) => {
+                                    this.setState({ description: e.target.value })
+                                }}>
+
+                                </textarea>
+                                <input type="text" placeholder="Button Text" value={this.state.buttonText} onChange={(e) => {
+                                    this.setState({ buttonText: e.target.value })
+                                }} />
+                                <input type="text" placeholder="Button Link" value={this.state.buttonLink} onChange={(e) => {
+                                    this.setState({ buttonLink: e.target.value })
+                                }} />
+                                <input type="file" onChange={(e) => {
+                                    e.preventDefault()
+                                    let dropFiles = []
+                                    if (e.target.files && e.target.files.length > 0) {
+                                        let objected = Object.entries(e.target.files)
+                                        objected.map((f, i) => {
+                                            const reader = new FileReader();
+                                            dropFiles.push(objected[i][1])
+                                            reader.addEventListener('load', () => {
+                                                let img = new Image();
+                                                let result = reader.result
+                                                img.onload = (e) => {
+                                                    let arr = []
+                                                    arr.push(result)
+                                                    this.setState({ editImageArray: arr, dropFileEdit: dropFiles })
+                                                };
+                                                img.src = result;
+                                            });
+                                            reader.readAsDataURL(objected[i][1]);
+                                            e.target.value = null
+                                        })
+                                    }
+                                }} />
+                                <button onClick={this.editSection.bind(this)}>SAVE</button>
+                            </div>
+                            <div className="image-icpopup">
+                                {this.state.editImageArray.length > 0 && <img src={this.state.editImageArray[0]} />}
+                            </div>
+                        </div>
+                    </div>
+                </div>}
             </div>
         )
     }

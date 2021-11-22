@@ -1,7 +1,28 @@
 import React, { Component } from 'react'
+import firebase from "../Config/Firebase";
 import './index.css'
 
 export class Footer extends Component {
+
+    constructor() {
+        super()
+        this.state = {
+            footerMoreLinks: []
+        }
+    }
+
+    componentDidMount() {
+        firebase.database().ref("footer_more_links").on("value", (data) => {
+            let a = data.val()
+            console.log(a, '/yeh aya')
+            if (a) {
+                this.setState({ footerMoreLinks: a })
+            } else {
+                this.setState({ footerMoreLinks: [] })
+            }
+        })
+    }
+
     render() {
         return (
             <div className="footer-bottom-main">
@@ -63,22 +84,28 @@ export class Footer extends Component {
                                 )
                             }}>Get Directions</p>
                         </div>
-                        <div className="inner-container-row-fbm">
+                        {this.state.footerMoreLinks.length > 0 && <div className="inner-container-row-fbm">
                             <p className="title-icrf">More Links</p>
-                            <p className="content-icrf" onClick={() => {
-                                window.open(
-                                    "https://www.linkedin.com/in/rick-b-chavez",
-                                    "_blank"
-                                )
-                            }}>Linkedin</p>
-                            <p className="content-icrf" onClick={() => {
+                            {this.state.footerMoreLinks.map((e) => {
+                                if (e.linkText) {
+                                    return <p className="content-icrf" onClick={() => {
+                                        if (e.link) {
+                                            window.open(
+                                                e.link,
+                                                "_blank"
+                                            )
+                                        }
+                                    }}>{e.linkText}</p>
+                                }
+                            })}
+                            {/* <p className="content-icrf" onClick={() => {
                                 window.location.href = "/signup"
-                            }}>Sign up for the Email list</p>
-                        </div>
+                            }}>Sign up for the Email list</p> */}
+                        </div>}
                     </div>
                     <div className="container-bottom-fbm">
                         <button onClick={() => {
-                                window.location.href = "/insurance-policy"
+                            window.location.href = "/insurance-policy"
                         }}>Why We Don't Accept Insurance</button>
                         <p>Interest-Based Copyright&copy; 2022, 2ndtonone.com, and its affiliates.</p>
                     </div>

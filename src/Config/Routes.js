@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Route, Router, Switch } from 'react-router-dom'
 import Admin from '../Containers/Admin'
+import AdminLogin from '../Containers/AdminLogin'
 import Home from '../Containers/Home'
 import InsurancePolicy from '../Containers/Insurance Policy'
 import Signup from '../Containers/Signup'
@@ -17,6 +18,7 @@ export class Routes extends Component {
                         <Route exact path="/" component={Home} />
                         <Route exact path="/signup" component={Signup} />
                         <Route exact path="/admin" component={Admin} />
+                        <Route exact path="/adminLogin/:adminKey" component={AdminLogin} />
                         <Route exact path="/insurance-policy" component={InsurancePolicy} />
                     </Switch>
                 </Router>
